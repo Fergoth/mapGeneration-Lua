@@ -5,25 +5,45 @@ map_file = "map.txt"
 
 grid = {}
 grid2 = {}
+checked = {}
 
 math.randomseed(os.time())
 
 fillprob = 40
 r1_cutoff = 5
 r2_cutoff = 2
-x = 100
-y = 100
-iterations = 5
+x = 500
+y = 500
+iterations = 7
 fileWrite = io.open(tostring(x).."x"..tostring(y).."map.txt","w")
 fileWrite:write("\n")
 fileWrite:close()
 
-function write_to_file(n)
+function dfs(x1,y1,n)
+  stack = {}
+  table.insert(stack,{x1,y1})
+  while #stack > 0 do
+    curr = table.remove(stack)
+    x1 = curr[1]
+    y1 = curr[2]
+    checked[x1][y1] = n
+    for i = -1 , 1 do
+      for j = -1 , 1 do
+        if x>=x1+i and x1+i>=1 and y>=y1+j and y1+j>=1 and checked[x1+i][y1+j]=='0' and grid[x1+i][y1+j] == FLOOR_CELL then table.insert(stack,{x1+i,y1+j}) end
+      end
+    end
+  end
+end
+
+
+
+
+function write_to_file(arr)
   fileWrite = io.open(tostring(x).."x"..tostring(y).."map.txt","a")
-  fileWrite:write("generation"..tostring(n).."\n")
+
   for i = 1, x do
     for j = 1, y do
-      fileWrite:write(grid[i][j])
+      fileWrite:write(arr[i][j])
     end
     fileWrite:write("\n")
   end
@@ -35,6 +55,13 @@ function randpick()
 end
 
 function initmap()
+  for i = 1, x do
+    checked[i] = {}
+    for j = 1, y do
+      checked[i][j] = '0'
+    end
+  end
+
   for i = 1, x do
     grid[i] = {}
     for j = 1, y do
@@ -57,7 +84,7 @@ function initmap()
   end
 end
 
-function generation()
+function generation(r1_cutof,r2_cutof)
   for i = 2, x-1 do
     for j = 2, y-1 do
       adjcout_r1, adjcount_r2 = 0,0
@@ -67,15 +94,15 @@ function generation()
         end
       end
 
-      for ii = -2, 2 do
-        for jj =-2, 2 do
-          if not (math.abs(ii-i) == 2 and math.abs(jj-j) == 2) or (ii<1 or jj<1 or ii>x or jj>x) then
-            if grid[i][j] == WALL_CELL then adjcount_r2 = adjcount_r2 + 1 end
+      for ii = i-2, i+2 do
+        for jj =j-2, j+2 do
+          if not ((math.abs(ii-i) == 2 and math.abs(jj-j) == 2) or (ii<1 or jj<1 or ii>x or jj>x)) then
+            if grid[ii][jj] == WALL_CELL then adjcount_r2 = adjcount_r2 + 1 end
           end
         end
       end
 
-      if adjcout_r1 >= r1_cutoff or adjcount_r2>=r2_cutoff then
+      if adjcout_r1 >= r1_cutof or adjcount_r2<=r2_cutof then
         grid2[i][j] = WALL_CELL
       else
         grid2[i][j] = FLOOR_CELL
@@ -90,7 +117,22 @@ function generation()
 end
 
 initmap()
-for i = 1 , iterations do
-  generation()
-  write_to_file(i)
+for i = 1 , 4 do
+  generation(5,1)
 end
+
+for i = 1, 3 do
+  generation(5,0)
+end
+
+
+n = {"a","b","c","d","e","f","g","h","i","k"}
+
+for i = 2,x-1 do
+  for j = 2, y-1 do
+    if grid[i][j] == FLOOR_CELL and checked[i][j] == '0' then
+      dfs(i,j,table.remove(n))
+    end
+  end
+end
+write_to_file(checked)
