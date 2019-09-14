@@ -4,10 +4,15 @@ local map = {
   wall = "1"
 }
 
-function map:new()
-  newObj = {}
+function map:new(x,y,grid)
+  local newObj = {
+    x = x or 0,
+    y = y or 0 ,
+    grid = grid or {}
+  }
   self.__index = self
-  return setmetatable(newObj,self)
+  setmetatable(newObj,self)
+  return newObj
 end
 
 function map:generate(settings)
@@ -22,7 +27,7 @@ function map:generate(settings)
   end
 
   local function initmap()
-    math.randomseed(os.time())
+
     for i = 1, self.x do
       grid[i] = {}
       for j = 1, self.y do
